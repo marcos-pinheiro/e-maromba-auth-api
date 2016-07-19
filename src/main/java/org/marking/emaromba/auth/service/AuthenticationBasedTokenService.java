@@ -3,7 +3,6 @@ package org.marking.emaromba.auth.service;
 import java.util.concurrent.TimeUnit;
 
 import org.marking.emaromba.auth.domain.Account;
-import org.marking.emaromba.auth.domain.AuthenticatedAccount;
 import org.marking.emaromba.auth.exception.TokenNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,10 +14,10 @@ public final class AuthenticationBasedTokenService implements AuthenticationServ
 	private static final int TIME = 5;
 
 
-	private RedisTemplate<String, AuthenticatedAccount> redisTemplate;
+	private RedisTemplate<String, Account> redisTemplate;
 
 	@Autowired
-	public AuthenticationBasedTokenService(RedisTemplate<String, AuthenticatedAccount> redisTemplate) {
+	public AuthenticationBasedTokenService(RedisTemplate<String, Account> redisTemplate) {
 		this.redisTemplate = redisTemplate;
 	}
 
@@ -29,10 +28,9 @@ public final class AuthenticationBasedTokenService implements AuthenticationServ
 		TokenGeneratorService tokenGeneratorService = JWTGeneratorService.from(account);
 				
 		final String token 	= tokenGeneratorService.generate();
-		final String key	= tokenGeneratorService.getKey();
 
 		//Trocar isso depois
-		redisTemplate.opsForValue().set(token, new AuthenticatedAccount(account, key));
+		redisTemplate.opsForValue().set(token, account);
 		renewToken(token);
 		
 		return token;
@@ -42,15 +40,15 @@ public final class AuthenticationBasedTokenService implements AuthenticationServ
 	@Override
 	public Account retrieveInformationById(String token) throws TokenNotFoundException {
 		
-		AuthenticatedAccount authenticatedAccount = redisTemplate.opsForValue().get(token);
+		Account account = redisTemplate.opsForValue().get(token);
 
-		if(authenticatedAccount == null) {
+		if(account == null) {
 			throw new TokenNotFoundException();
 		}
 		renewToken(token);
 		
 		
-		return authenticatedAccount.getAccount();
+		return account;
 	}
 
 	@Override

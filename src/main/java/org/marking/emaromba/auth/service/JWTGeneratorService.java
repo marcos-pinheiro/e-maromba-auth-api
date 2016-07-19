@@ -14,15 +14,13 @@ public class JWTGeneratorService implements TokenGeneratorService {
 	private static final String TYPE = "JWT";
 	
 	private final Account account;
-	private final String key;
 	
-	private JWTGeneratorService(Account account, String key) {
+	private JWTGeneratorService(Account account) {
 		this.account = account;
-		this.key = key;
 	}
 	
 	public static JWTGeneratorService from(Account account) {
-		return new JWTGeneratorService(account, KeyGenerator.randonKey());
+		return new JWTGeneratorService(account);
 	}
 	
 	
@@ -32,15 +30,9 @@ public class JWTGeneratorService implements TokenGeneratorService {
 				.setHeaderParam("typ", TYPE)
 				.setClaims(getClaims())
 				.setSubject(getSubject())
-				.signWith(getDefaultAlgorithm(), key)
+				.signWith(getDefaultAlgorithm(), KeyGenerator.getKey())
 				.compact();
 	}
-	
-	@Override
-	public String getKey() {
-		return key;
-	}
-	
 	
 	public static SignatureAlgorithm getDefaultAlgorithm() {
 		return SignatureAlgorithm.HS256;

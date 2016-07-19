@@ -6,13 +6,11 @@ import org.marking.emaromba.auth.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 public class AuthenticationResource {
@@ -24,32 +22,27 @@ public class AuthenticationResource {
 	/**
 	 * 
 	 * @param account
-	 * @param headers
-	 * @param uriBuilder
 	 * @return
 	 * @throws AuthenticationAPIException 
 	 */
 	@RequestMapping(value = "/auth", method = RequestMethod.POST)
-	public ResponseEntity<Void> create(@RequestBody Account account, @RequestHeader HttpHeaders headers, UriComponentsBuilder uriBuilder) throws AuthenticationAPIException {
+	public ResponseEntity<Void> create(@RequestBody Account account) throws AuthenticationAPIException {
 
 		final String token = authenticationBasedTokenService.authenticate(account);
 
 		return ResponseEntity
-				.created(uriBuilder.path("/auth/{token}").buildAndExpand(token).toUri())
-				.header("Authorization", token).build();
+				.ok().header("Authorization", token).build();
 	}
 
 
 	/**
 	 * 
-	 * @param token
+	 * @param authorization
 	 * @return
 	 * @throws AuthenticationAPIException 
 	 */
 	@RequestMapping(value = "/auth", method = RequestMethod.GET)
-	public ResponseEntity<Account> get(@RequestHeader HttpHeaders headers) throws AuthenticationAPIException {
-
-		final String authorization = headers.get("Authorization").get(0);
+	public ResponseEntity<Account> get(@RequestHeader("Authorization") String authorization) throws AuthenticationAPIException {
 
 		final Account account = authenticationBasedTokenService.retrieveInformationById(authorization);
 
@@ -71,20 +64,5 @@ public class AuthenticationResource {
 
 
 		return ResponseEntity.noContent().build();
-	}
-
-
-	/**
-	 * 
-	 * @param token
-	 * @return
-	 * @throws AuthenticationAPIException 
-	 */
-	@RequestMapping(value = "/auth/{token}", method = RequestMethod.GET) //NOT WORK
-	public ResponseEntity<Account> get(@PathVariable("token") String token) throws AuthenticationAPIException {
-
-		Account account = authenticationBasedTokenService.retrieveInformationById(token);
-
-		return ResponseEntity.ok(account);
 	}
 }
