@@ -4,22 +4,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.marking.emaromba.auth.domain.Account;
+import org.marking.emaromba.auth.util.KeyGenerator;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
-public class JWTGeneratorService implements TokenGeneratorService<Account> {
+public class JWTGeneratorService implements TokenGeneratorService {
 	
 	private static final String TYPE = "JWT";
 	
 	private final Account account;
+	private final String key;
 	
-	private JWTGeneratorService(Account account) {
+	private JWTGeneratorService(Account account, String key) {
 		this.account = account;
+		this.key = key;
 	}
 	
 	public static JWTGeneratorService from(Account account) {
-		return new JWTGeneratorService(account);
+		return new JWTGeneratorService(account, KeyGenerator.randonKey());
 	}
 	
 	
@@ -29,14 +32,15 @@ public class JWTGeneratorService implements TokenGeneratorService<Account> {
 				.setHeaderParam("typ", TYPE)
 				.setClaims(getClaims())
 				.setSubject(getSubject())
-				//.setIssuer(headers.getOrigin())
-				.signWith(getDefaultAlgorithm(), getGeneratedKey())
+				.signWith(getDefaultAlgorithm(), key)
 				.compact();
 	}
 	
-	public static String getGeneratedKey() {
-		return null;
+	@Override
+	public String getKey() {
+		return key;
 	}
+	
 	
 	public static SignatureAlgorithm getDefaultAlgorithm() {
 		return SignatureAlgorithm.HS256;

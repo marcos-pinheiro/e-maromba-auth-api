@@ -5,11 +5,11 @@ import java.io.Serializable;
 public class AuthenticatedAccount implements Serializable {
 	
 	private final Account account;
-	private final String token;
+	private final String key;
 	
-	public AuthenticatedAccount(Account account, String token) {
+	public AuthenticatedAccount(Account account, String key) {
 		this.account = account;
-		this.token = token;
+		this.key = key;
 	}
 	
 	
@@ -17,8 +17,8 @@ public class AuthenticatedAccount implements Serializable {
 		return account;
 	}
 	
-	public String getToken() {
-		return token;
+	public String getKey() {
+		return key;
 	}
 
 	private static final long serialVersionUID = 1L;	

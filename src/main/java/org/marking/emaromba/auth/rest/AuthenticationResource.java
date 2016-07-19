@@ -1,13 +1,9 @@
 package org.marking.emaromba.auth.rest;
 
-import java.util.concurrent.TimeUnit;
-
 import org.marking.emaromba.auth.domain.Account;
-import org.marking.emaromba.auth.exception.TokenNotFoundException;
-import org.marking.emaromba.auth.service.TokenGeneratorService;
-import org.marking.emaromba.auth.service.JWTGeneratorService;
+import org.marking.emaromba.auth.exception.AuthenticationAPIException;
+import org.marking.emaromba.auth.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,47 +14,77 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-//https://github.com/jwtk/jjwt
-//https://stormpath.com/blog/jwt-java-create-verify
-
 @RestController
 public class AuthenticationResource {
-	
+
 	@Autowired
-	private RedisTemplate<String, Account> redisTemplate;	
+	private AuthenticationService<Account> authenticationBasedTokenService;
+
 	
+	/**
+	 * 
+	 * @param account
+	 * @param headers
+	 * @param uriBuilder
+	 * @return
+	 * @throws AuthenticationAPIException 
+	 */
 	@RequestMapping(value = "/auth", method = RequestMethod.POST)
-	public ResponseEntity<Void> create(@RequestBody Account account, @RequestHeader HttpHeaders headers, UriComponentsBuilder uriBuilder) {
-		
-		final TokenGeneratorService<Account> authenticationService = JWTGeneratorService.from(account);
-		final String token = authenticationService.generate();
-		
-		
-		redisTemplate.opsForValue().set(token, account);
-		redisTemplate.expire(token, 1, TimeUnit.MINUTES);
-		
+	public ResponseEntity<Void> create(@RequestBody Account account, @RequestHeader HttpHeaders headers, UriComponentsBuilder uriBuilder) throws AuthenticationAPIException {
+
+		final String token = authenticationBasedTokenService.authenticate(account);
+
 		return ResponseEntity
 				.created(uriBuilder.path("/auth/{token}").buildAndExpand(token).toUri())
-				.header("Authorization", "Bearer " + token).build();
+				.header("Authorization", token).build();
 	}
-	
-	@RequestMapping(value = "/auth/{token}", method = RequestMethod.GET)
-	public ResponseEntity<Account> get(@PathVariable("token") String token) throws TokenNotFoundException {
-		
-		Account account = redisTemplate.opsForValue().get(token);
-		
-		if(account == null) {
-			throw new TokenNotFoundException();
-		}		
-		redisTemplate.expire(token, 1, TimeUnit.MINUTES);
-		
-		
-		
-		
-		
-		
-		
-		
+
+
+	/**
+	 * 
+	 * @param token
+	 * @return
+	 * @throws AuthenticationAPIException 
+	 */
+	@RequestMapping(value = "/auth", method = RequestMethod.GET)
+	public ResponseEntity<Account> get(@RequestHeader HttpHeaders headers) throws AuthenticationAPIException {
+
+		final String authorization = headers.get("Authorization").get(0);
+
+		final Account account = authenticationBasedTokenService.retrieveInformationById(authorization);
+
+		return ResponseEntity.ok(account);
+	}
+
+
+	/**
+	 * 
+	 * @param headers
+	 * @return
+	 * @throws AuthenticationAPIException
+	 */
+	@RequestMapping(value = "/auth", method = RequestMethod.DELETE)
+	public ResponseEntity<Void> removeToken(@RequestHeader HttpHeaders headers) throws AuthenticationAPIException {
+
+		final String token = headers.get("Authorization").get(0);
+		authenticationBasedTokenService.removeAuthentication(token);
+
+
+		return ResponseEntity.noContent().build();
+	}
+
+
+	/**
+	 * 
+	 * @param token
+	 * @return
+	 * @throws AuthenticationAPIException 
+	 */
+	@RequestMapping(value = "/auth/{token}", method = RequestMethod.GET) //NOT WORK
+	public ResponseEntity<Account> get(@PathVariable("token") String token) throws AuthenticationAPIException {
+
+		Account account = authenticationBasedTokenService.retrieveInformationById(token);
+
 		return ResponseEntity.ok(account);
 	}
 }

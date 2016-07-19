@@ -18,5 +18,6 @@ public class AuthenticationAPIException extends Exception {
 		super(message, throwable);
 	}
 	
+	
 	private static final long serialVersionUID = 1L;
 }
