@@ -4,7 +4,6 @@ import org.marking.emaromba.auth.domain.Account;
 import org.marking.emaromba.auth.exception.AuthenticationAPIException;
 import org.marking.emaromba.auth.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -46,7 +45,8 @@ public class AuthenticationResource {
 
 		final Account account = authenticationBasedTokenService.retrieveInformationById(authorization);
 
-		return ResponseEntity.ok(account);
+		return ResponseEntity
+				.ok(account);
 	}
 
 
@@ -57,12 +57,13 @@ public class AuthenticationResource {
 	 * @throws AuthenticationAPIException
 	 */
 	@RequestMapping(value = "/auth", method = RequestMethod.DELETE)
-	public ResponseEntity<Void> removeToken(@RequestHeader HttpHeaders headers) throws AuthenticationAPIException {
+	public ResponseEntity<Void> removeToken(@RequestHeader("Authorization") String authorization) throws AuthenticationAPIException {
 
-		final String token = headers.get("Authorization").get(0);
+		final String token = authorization;
 		authenticationBasedTokenService.removeAuthentication(token);
 
 
-		return ResponseEntity.noContent().build();
+		return ResponseEntity
+				.noContent().build();
 	}
 }
