@@ -9,12 +9,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service("authenticationBasedTokenService")
-public final class AuthenticationBasedTokenService implements AuthenticationService<Account> {
+public class AuthenticationBasedTokenService implements AuthenticationService<Account> {
 
 	private static final int TIME = 5;
 
-
 	private RedisTemplate<String, Account> redisTemplate;
+	
 
 	@Autowired
 	public AuthenticationBasedTokenService(RedisTemplate<String, Account> redisTemplate) {
@@ -29,9 +29,7 @@ public final class AuthenticationBasedTokenService implements AuthenticationServ
 				
 		final String token 	= tokenGeneratorService.generate();
 
-		//Trocar isso depois
-		redisTemplate.opsForValue().set(token, account);
-		renewToken(token);
+		this.putToken(token, account);
 		
 		return token;
 	}
@@ -54,11 +52,15 @@ public final class AuthenticationBasedTokenService implements AuthenticationServ
 	@Override
 	public void removeAuthentication(String token) {
 		redisTemplate.opsForValue().getOperations().delete(token);
-		
 	}
 	
 	
 	void renewToken(String token) {
 		redisTemplate.expire(token, TIME, TimeUnit.MINUTES);
+	}
+	
+	void putToken(String token, Account account) {
+		redisTemplate.opsForValue().set(token, account);
+		renewToken(token);
 	}
 }

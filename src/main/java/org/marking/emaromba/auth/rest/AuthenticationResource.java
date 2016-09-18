@@ -30,7 +30,7 @@ public class AuthenticationResource {
 		final String token = authenticationBasedTokenService.authenticate(account);
 
 		return ResponseEntity
-				.ok().header("Authorization", token).build();
+				.noContent().header("Authorization", token).build();
 	}
 
 
@@ -61,7 +61,6 @@ public class AuthenticationResource {
 
 		final String token = authorization;
 		authenticationBasedTokenService.removeAuthentication(token);
-
 
 		return ResponseEntity
 				.noContent().build();
