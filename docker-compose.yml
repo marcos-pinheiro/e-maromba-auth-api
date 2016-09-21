@@ -1,0 +1,57 @@
+version: "2"
+services:
+  auth-api:
+    container_name: "auth_api"
+    build: .
+    image: spring-boot/jdk8 #Quando image e build estão juntos, image terá o nome da imagem gerada no build do dockerfile
+    ports:
+      - "8081:8080"
+    links:
+      - auth-db
+      - graylog-server
+    depends_on:
+      - auth-db
+    environment:
+      - DATABASE_SERVER=auth-db
+      - GRAYLOG_SERVER=graylog-server
+
+  auth-db:
+    container_name: "auth_db"
+    image: redis
+    expose: 
+      - "6379"
+    ports:
+      - "6379:6379"
+
+  graylog-server:
+    container_name: "graylog_server"
+    image: graylog2/allinone
+    expose:
+      - "12900"
+      - "12201"
+      - "4001"
+    ports:
+      - "12900:12900"
+      - "12201:12201"
+      - "4001:4001"
+    environment:
+      - GRAYLOG_SERVER=true
+      - GRAYLOG_PASSWORD=marcos
+      - GRAYLOG_TIMEZONE=America/Sao_Paulo
+
+  graylog-client:
+    container_name: "graylog_ui"
+    image: graylog2/allinone
+    expose:
+      - "9000"
+    ports:
+      - "9000:9000"
+    links:
+      - graylog-server
+    environment:
+      - GRAYLOG_WEB=true
+      - GRAYLOG_PASSWORD=marcos
+      - GRAYLOG_TIMEZONE=America/Sao_Paulo
+      - GRAYLOG_MASTER=graylog-server
+    depends_on:
+      - graylog-server

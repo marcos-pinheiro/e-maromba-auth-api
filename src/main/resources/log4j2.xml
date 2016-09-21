@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="OFF" packages="org.graylog2.log4j2" monitorInterval="30">
     <Appenders>
-        <GELF name="gelfAppender" server="172.19.0.2" port="12201" hostName="e-maromba/auth-api">
+        <GELF name="gelfAppender" server="${env:GRAYLOG_SERVER}" port="12201" hostName="e-maromba/auth-api">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
             <KeyValuePair key="user" value="${env:USER}"/>
         </GELF>
